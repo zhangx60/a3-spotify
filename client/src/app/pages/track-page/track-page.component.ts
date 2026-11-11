@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { SpotifyService } from '../../services/spotify.service';
 import { TrackData } from '../../data/track-data';
@@ -13,12 +15,18 @@ export class TrackPageComponent implements OnInit {
 	trackId:string;
 	track:TrackData;
 
-  constructor(private route: ActivatedRoute, private spotifyService: SpotifyService) { }
+  constructor(private route: ActivatedRoute, private spotifyService: SpotifyService, private destroyRef: DestroyRef) { }
 
   ngOnInit() {
-  	this.trackId = this.route.snapshot.paramMap.get('id');
-    // Load the track details using the ID from the URL.
-    this.spotifyService.getTrack(this.trackId).then((track) => {
+    // Reload whenever the URL changes to another track.
+    this.route.paramMap.pipe(
+      switchMap((params) => {
+        this.trackId = params.get('id');
+        this.track = undefined;
+        return this.spotifyService.getTrack(this.trackId);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((track) => {
       this.track = track;
     });
   }

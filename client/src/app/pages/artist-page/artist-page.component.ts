@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { SpotifyService } from '../../services/spotify.service';
 import { ArtistData } from '../../data/artist-data';
@@ -17,21 +19,28 @@ export class ArtistPageComponent implements OnInit {
 	topTracks:TrackData[];
 	albums:AlbumData[];
 
-  constructor(private route: ActivatedRoute, private spotifyService: SpotifyService) { }
+  constructor(private route: ActivatedRoute, private spotifyService: SpotifyService, private destroyRef: DestroyRef) { }
 
   ngOnInit() {
-    this.artistId = this.route.snapshot.paramMap.get('id');
-    // Load each section using the artist ID from the URL.
-    this.spotifyService.getArtist(this.artistId).then((artist) => {
-      this.artist = artist;
-    });
+    // Reload whenever the URL changes to another artist.
+    this.route.paramMap.pipe(
+      switchMap((params) => {
+        this.artistId = params.get('id');
+        this.artist = undefined;
+        this.topTracks = [];
+        this.albums = [];
 
-    this.spotifyService.getTopTracksForArtist(this.artistId).then((tracks) => {
-      this.topTracks = tracks;
-    });
-
-    this.spotifyService.getAlbumsForArtist(this.artistId).then((albums) => {
-      this.albums = albums;
+        return forkJoin({
+          artist: this.spotifyService.getArtist(this.artistId),
+          topTracks: this.spotifyService.getTopTracksForArtist(this.artistId),
+          albums: this.spotifyService.getAlbumsForArtist(this.artistId)
+        });
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((data) => {
+      this.artist = data.artist;
+      this.topTracks = data.topTracks;
+      this.albums = data.albums;
     });
   }
 

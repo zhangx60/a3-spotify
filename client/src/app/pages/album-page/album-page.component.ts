@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { SpotifyService } from '../../services/spotify.service';
 import { TrackData } from '../../data/track-data';
@@ -16,17 +18,25 @@ export class AlbumPageComponent implements OnInit {
 	tracks:TrackData[];
 
 
-  constructor(private route: ActivatedRoute, private spotifyService: SpotifyService) { }
+  constructor(private route: ActivatedRoute, private spotifyService: SpotifyService, private destroyRef: DestroyRef) { }
 
   ngOnInit() {
-    this.albumId = this.route.snapshot.paramMap.get('id');
-    // Load the album details and its tracks using the ID from the URL.
-    this.spotifyService.getAlbum(this.albumId).then((album) => {
-      this.album = album;
-    });
+    // Reload whenever the URL changes to another album.
+    this.route.paramMap.pipe(
+      switchMap((params) => {
+        this.albumId = params.get('id');
+        this.album = undefined;
+        this.tracks = [];
 
-    this.spotifyService.getTracksForAlbum(this.albumId).then((tracks) => {
-      this.tracks = tracks;
+        return forkJoin({
+          album: this.spotifyService.getAlbum(this.albumId),
+          tracks: this.spotifyService.getTracksForAlbum(this.albumId)
+        });
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((data) => {
+      this.album = data.album;
+      this.tracks = data.tracks;
     });
   }
 
