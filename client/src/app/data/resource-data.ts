@@ -19,7 +19,7 @@ export abstract class ResourceData {
 			this.imageURL = '../../assets/unknown.jpg';
 		}
 
-		if(objectModel['popularity']) {
+		if(objectModel['popularity']!== undefined) {
 			this.popularity = new Popularity(objectModel['popularity']);
 		}
 
