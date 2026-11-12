@@ -13,7 +13,7 @@
 
 2. How long, in hours, did it take you to complete this assignment?
 Xinyu Zhang: total 8+3 = 11 hours, 8 hours used for individual tesks development and 3 for group debug
-Yilin Shen:  
+Yilin Shen: total 6+3 = 9 hours, 6 hours used for individual tesks development and 3 for group debug
 
 
 3. What online resources did you consult when completing this assignment? (list specific URLs)
@@ -23,6 +23,9 @@ https://angular.dev/guide/routing/read-route-state
 https://getbootstrap.com/docs/5.3/components/carousel/
 https://rxjs.dev/api/index/function/firstValueFrom
 https://angular.dev/api/core/@if
+https://angular.dev/guide/templates/event-listeners
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
 
 4. What classmates or other individuals did you consult as part of this assignment? What did you discuss?
 My partner Yilin and I worked together on this assignment.
